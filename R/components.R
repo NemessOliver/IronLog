@@ -49,7 +49,7 @@ change_line <- function(change, text = "", good_when = "up", unit = "") {
   mood <- if (direction == "flat" || good_when == "none") "" else if (direction == good_when) "good" else "bad"
   arrow <- c(up = "arrow-up", down = "arrow-down", flat = "minus")[[direction]]
   amount <- format(abs(change), big.mark = ",", trim = TRUE)    # >> 5500 -> "5,500"
-  div(class = paste("d", mood), icon(arrow), tags$b(trimws(paste(amount, unit))), text)
+  div(class = paste("d", mood), icon(arrow), tags$b(class = "amt", trimws(paste(amount, unit))), text)
 }
 
 # >> a note without an arrow, e.g. "Goal reached"
@@ -73,6 +73,29 @@ ui_table <- function(headers, rows, num = integer(0)) {
     tags$tbody(lapply(rows, function(row) {
       tags$tr(lapply(seq_along(row), function(j) tags$td(class = align(j), row[[j]])))
     })))
+}
+
+# >> one earlier training day as its own card ("bubble"): date + kind on top, one line per exercise
+# >> sets = all sets of that day, with the is_pr column from mark_prs()
+session_card <- function(day, sets) {
+  kinds <- unique(sets$category)                           # >> e.g. "Upper", or "Upper" + "Cardio"
+  icon_name <- if (length(kinds) == 1) switch(kinds, Upper = "angles-up", Lower = "angles-down",
+                                              Cardio = "heart-pulse", "dumbbell") else "dumbbell"
+  lifts <- strength_sets(sets)
+  hint <- if (nrow(lifts) > 0) paste(nrow(lifts), if (nrow(lifts) == 1) "set" else "sets", "·",
+                                     format_volume(sum(lifts$weight_kg * lifts$reps)), "kg")
+  exercises <- day_exercises(sets)
+  div(class = "il-bubble",
+      panel(paste(short_day(day), "·", paste(kinds, collapse = " + ")), icon_name,
+            ui_table(c("Exercise", "Sets", "Best set", "Est. 1RM", ""),
+                     lapply(seq_len(nrow(exercises)), function(i) list(
+                       span(class = "strong", exercises$exercise[i]),
+                       exercises$sets[i],
+                       exercises$best[i],
+                       if (is.na(exercises$one_rm[i])) "-" else paste(exercises$one_rm[i], "kg"),
+                       if (exercises$pr[i]) pill("PR", "pr") else "")),
+                     num = 2:4),
+            hint = hint))
 }
 
 # >> the "This week" box in the sidebar: X / goal workouts + one little bar per day

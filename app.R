@@ -35,7 +35,7 @@ body_metrics <- c(
   "Body fat (%)"         = "body_fat_pct",
   "Muscle mass (kg)"     = "muscle_kg",
   "Protein mass (kg)"    = "protein_kg",
-  "Visceral fat (level)" = "visceral_fat",
+  "Visceral fat"         = "visceral_fat",   # >> a level, not kg (short label so it fits on one line)
   "Bone mass (kg)"       = "bone_kg",
   "Body water (%)"       = "water_pct"
 )
@@ -104,7 +104,8 @@ ui <- fluidPage(
                                    tagList(icon("heart-pulse"), "Cardio")),
                 choiceValues = c("Upper", "Lower", "Cardio")))),
           fluidRow(
-            column(5, panel("Log a set", "circle-plus",
+            # >> left: the form. "il-sticky" keeps it in view while I scroll through my sessions
+            column(5, div(class = "il-sticky", panel("Log a set", "circle-plus",
               dateInput("workout_date", "Date", value = Sys.Date()),
               selectizeInput("exercise", "Exercise", choices = NULL,        # >> the server fills in the list
                              options = list(create = TRUE,                  # >> lets me type a brand-new exercise
@@ -121,12 +122,17 @@ ui <- fluidPage(
                   column(6, numericInput("duration", "Minutes", value = 30, min = 1)),
                   column(6, numericInput("distance", "Distance (km)", value = NA, min = 0, step = 0.1)))),
               actionButton("add_set", "Add set", icon = icon("plus"), class = "btn-primary w-100"),
-              hint = uiOutput("next_set_hint", inline = TRUE))),
-            column(7, panel(uiOutput("session_title", inline = TRUE), "list",
-                            uiOutput("session_table"),
-                            hint = textOutput("session_hint", inline = TRUE)))
-          ),
-          uiOutput("session_kpis")                                          # >> session volume, sets, best set
+              hint = uiOutput("next_set_hint", inline = TRUE)))),
+            # >> right: the session of the picked date, its 3 tiles, then my earlier sessions
+            column(7,
+              panel(uiOutput("session_title", inline = TRUE), "list",
+                    uiOutput("session_table"),
+                    hint = textOutput("session_hint", inline = TRUE)),
+              uiOutput("session_kpis"),                                     # >> session volume, sets, best set
+              div(class = "il-section", icon("clock-rotate-left"), "Earlier sessions",
+                  span(class = "il-hint", textOutput("earlier_count", inline = TRUE))),
+              uiOutput("earlier_sessions"))                                 # >> one card ("bubble") per session
+          )
         ),
 
         # ---------- Page 3: Body ----------
@@ -140,8 +146,9 @@ ui <- fluidPage(
                   column(3, numericInput(paste0("b_", body_metrics[[label]]), label,
                                          value = NA, min = 0, step = 0.1))
                 })),
-              fluidRow(column(4, actionButton("save_body", "Save reading", icon = icon("floppy-disk"),
-                                              class = "btn-primary w-100"))),
+              fluidRow(column(4, offset = 4,                                # >> offset 4 of 12 = centred
+                              actionButton("save_body", "Save reading", icon = icon("floppy-disk"),
+                                           class = "btn-primary w-100"))),
               fluidRow(
                 column(6, div(class = "il-spark", uiOutput("spark_weight_head"),
                               plotOutput("spark_weight", height = "54px"))),
@@ -383,11 +390,17 @@ server <- function(input, output, session) {
                      type = "message")
   })
 
-  # >> all sets on the date picked in the form (with a TRUE/FALSE "is it a PR?" column)
-  session_sets <- reactive({
-    req(input$workout_date)
+  # >> all my sets with a TRUE/FALSE "is it a PR?" column (a PR is judged against my whole history)
+  marked_sets <- reactive({
     all_sets <- workouts()
     all_sets$is_pr <- mark_prs(all_sets)
+    all_sets
+  })
+
+  # >> the sets on the date picked in the form
+  session_sets <- reactive({
+    req(input$workout_date)
+    all_sets <- marked_sets()
     all_sets[which(all_sets$date == input$workout_date), ]
   })
 
@@ -429,7 +442,7 @@ server <- function(input, output, session) {
     before <- previous_session_volume(workouts(), input$workout_date, kind)
     best <- if (nrow(lifts) > 0) which.max(estimate_1rm(lifts$weight_kg, lifts$reps)) else NULL
 
-    div(class = "il-kpis three",
+    div(class = "il-kpis three compact",                                  # >> compact = a bit smaller, they sit next to the form
       kpi_tile("Session volume", "layer-group", format_volume(volume), "kg",
                if (!is.na(before) && volume > 0) change_line(volume - before, paste("vs last", kind, "session"), "up", "kg")
                else note_line("kg × reps, added up")),
@@ -443,6 +456,34 @@ server <- function(input, output, session) {
                  note_line(paste0(lifts$exercise[best], " · ≈ ",
                                   round(estimate_1rm(lifts$weight_kg[best], lifts$reps[best])), " kg 1RM"),
                            good = TRUE, icon_name = "star"))
+      })
+  })
+
+  # >> earlier sessions: every training day BEFORE the picked date, newest first
+  earlier_days <- reactive({
+    req(input$workout_date)
+    all_sets <- workouts()
+    sort(unique(all_sets$date[all_sets$date < input$workout_date]), decreasing = TRUE)
+  })
+
+  sessions_shown <- reactiveVal(4)                                        # >> how many cards are visible
+  observeEvent(input$more_sessions, sessions_shown(sessions_shown() + 4)) # >> "Show more" = 4 more cards
+
+  output$earlier_count <- renderText({
+    n <- length(earlier_days())
+    if (n == 0) "" else paste(n, if (n == 1) "session" else "sessions", "before", short_day(input$workout_date))
+  })
+
+  output$earlier_sessions <- renderUI({
+    days <- earlier_days()
+    if (length(days) == 0) return(div(class = "il-empty", "Your earlier sessions show up here."))
+    all_sets <- marked_sets()
+    shown <- head(days, sessions_shown())
+    tagList(
+      lapply(shown, function(day) session_card(day, all_sets[all_sets$date == day, ])),
+      if (length(days) > length(shown)) {                                 # >> only when there's more to show
+        actionButton("more_sessions", paste0("Show more (", length(days) - length(shown), " left)"),
+                     icon = icon("chevron-down"), class = "btn-ghost w-100")
       })
   })
 

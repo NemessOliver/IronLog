@@ -232,6 +232,27 @@ body {
 .il-pill.mut { background: var(--card2); color: var(--muted); }
 .il-pill.blue { background: rgba(56, 182, 255, 0.14); color: var(--blue); }
 
+/* ---------- Workout page ---------- */
+/* the "Log a set" form stays in view while I scroll through my sessions */
+.il-sticky { position: sticky; top: 20px; }
+
+/* the 3 tiles next to the form: a bit smaller, and always 3 in a row */
+.il-kpis.compact { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.il-kpis.compact .il-kpi { padding: 16px 18px; }
+.il-kpis.compact .il-kpi .v { font-size: clamp(22px, 2.1vw, 28px); }
+.il-kpis.compact .d { display: block; line-height: 1.45; }   /* long notes wrap like normal text */
+.il-kpis.compact .d i { margin-right: 3px; }
+.d b.amt { white-space: nowrap; }                             /* "5,500 kg" never splits over 2 lines */
+
+/* "Earlier sessions" heading + one card ("bubble") per session */
+.il-section { display: flex; align-items: center; gap: 9px; font-size: 14.5px; font-weight: 600; margin: 4px 2px 12px; }
+.il-section i { color: var(--acc); }
+.il-section .il-hint { margin-left: auto; font-weight: 400; }
+.il-bubble .il-card { padding: 16px 20px; margin-bottom: 14px; }
+.il-bubble .il-card-h { margin-bottom: 8px; }
+.il-bubble .il-table td { padding: 8px 10px; }
+#earlier_sessions .btn-ghost { margin-bottom: 20px; }
+
 /* pop-up messages ("Saved: Bench press, set 3") */
 .shiny-notification {
   background-color: var(--card2); color: var(--text);

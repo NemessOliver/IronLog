@@ -74,6 +74,28 @@ session_summaries <- function(workouts, n = 5) {
   do.call(rbind, rows)
 }
 
+# >> one line per exercise of one training day: sets, best set, est. 1RM and "was it a PR?"
+# >> (needs the is_pr column from mark_prs(), so a PR is judged against my whole history)
+day_exercises <- function(sets) {
+  rows <- lapply(unique(sets$exercise), function(name) {  # >> in the order I did them
+    mine <- sets[sets$exercise == name, ]
+    if (mine$category[1] == "Cardio") {                    # >> cardio: minutes (+ km) instead of kg
+      km <- sum(mine$distance_km, na.rm = TRUE)
+      best <- paste0(sum(mine$duration_min, na.rm = TRUE), " min", if (km > 0) paste0(" · ", km, " km") else "")
+      return(data.frame(exercise = name, sets = nrow(mine), best = best, one_rm = NA, pr = FALSE))
+    }
+    one_rm <- estimate_1rm(mine$weight_kg, mine$reps)
+    if (all(is.na(one_rm))) {                              # >> weight or reps missing (hand-edited file)
+      return(data.frame(exercise = name, sets = nrow(mine), best = "-", one_rm = NA, pr = FALSE))
+    }
+    top <- which.max(one_rm)                               # >> my best set of that exercise that day
+    data.frame(exercise = name, sets = nrow(mine),
+               best = paste(mine$weight_kg[top], "×", mine$reps[top]),
+               one_rm = round(one_rm[top]), pr = any(mine$is_pr %in% TRUE))
+  })
+  do.call(rbind, rows)
+}
+
 # >> my best set ever (highest estimated 1RM) for my most-trained lifts
 best_lifts <- function(workouts, n = 5) {
   lifts <- strength_sets(workouts)

@@ -20,7 +20,7 @@ I train 4–5 times a week, but my sets live in a notes app, so I can't really t
 |---|---|---|
 | **Sidebar** | Menu, "this week X / 4 workouts" with a bar per day, my goal streak, and a *Demo data* switch | Done |
 | **Dashboard** | Workouts this week, volume of the last 7 days, top lift, body fat, strength trend of my 3 main lifts, personal records, recent sessions, body snapshot | Done |
-| **Workout** | Pick Upper, Lower or Cardio, pick or type the exercise, log weight × reps (several identical sets at once). The session table marks new PRs; tiles show volume vs last session and the best set | Done |
+| **Workout** | Pick Upper, Lower or Cardio, pick or type the exercise, log weight × reps (several identical sets at once). The form stays in view; next to it the session table marks new PRs, tiles show volume vs last session and the best set, and earlier sessions follow as cards (*Show more* for older ones) | Done |
 | **Body** | Log a smart-scale reading: weight, BMI, body fat, muscle mass, protein mass, visceral fat, bone mass, body water. Sparklines, latest vs 4 weeks ago, full history | Done |
 | **Progress** | Pick 4 weeks / 12 weeks / all: estimated 1RM of up to 3 lifts, weekly volume (Upper vs Lower), weight / body fat / muscle mass, and training days per week vs my goal | Done |
 | **Progress** | Forecast for the next 4 weeks and a plateau check | Planned (December) |
