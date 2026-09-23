@@ -7,6 +7,7 @@
 #   - estimated 1RM: how much I could lift for ONE rep (Epley formula)
 #   - best estimated 1RM per week: my strongest set of each week
 #   - weekly volume: how much total work I did (kg x reps, added up)
+#   - personal records (PRs): sets that beat everything before them
 # Everything here is plain base R, no extra packages.
 # ============================================================
 
@@ -47,6 +48,21 @@ best_1rm_per_week <- function(workouts, exercise) {
   data.frame(week = as.Date(weekly$week), best_1rm = round(weekly$one_rm, 1))
 }
 
+# >> the best-1RM-per-week tables of several lifts stacked together (for the multi-line chart)
+strength_trends <- function(workouts, lifts) {
+  parts <- lapply(lifts, function(lift) {
+    weekly <- best_1rm_per_week(workouts, lift)
+    if (nrow(weekly) == 0) return(NULL)                    # >> skip lifts with no sets
+    weekly$exercise <- lift
+    weekly
+  })
+  parts <- Filter(Negate(is.null), parts)                  # >> throw away the empty ones
+  if (length(parts) == 0) {
+    return(data.frame(week = as.Date(character(0)), best_1rm = numeric(0), exercise = character(0)))
+  }
+  do.call(rbind, parts)                                    # >> glue the tables under each other
+}
+
 # >> total volume (kg x reps) per week, split into Upper and Lower
 weekly_volume <- function(workouts) {
   sets <- strength_sets(workouts)
@@ -60,9 +76,41 @@ weekly_volume <- function(workouts) {
   weekly
 }
 
-# >> turns a number into "+2.5 kg" / "-0.3 %" style text for the stat tiles
-signed <- function(x, unit = "") {
-  x <- round(x, 1)
-  sign <- if (x > 0) "+" else ""                           # >> negative numbers already have their "-"
-  trimws(paste0(sign, x, " ", unit))
+# >> total volume (kg x reps) between two dates (both days included)
+volume_between <- function(workouts, from, to) {
+  lifts <- strength_sets(workouts)
+  lifts <- lifts[lifts$date >= from & lifts$date <= to, ]
+  sum(lifts$weight_kg * lifts$reps)
+}
+
+# >> the volume of my last earlier session in the same category (to compare today with)
+previous_session_volume <- function(workouts, date, category) {
+  lifts <- strength_sets(workouts)
+  lifts <- lifts[lifts$category == category & lifts$date < date, ]
+  if (nrow(lifts) == 0) return(NA)                         # >> no earlier session to compare with
+  last_day <- lifts[lifts$date == max(lifts$date), ]
+  sum(last_day$weight_kg * last_day$reps)
+}
+
+# >> TRUE for every set that beat all earlier sets of the same exercise = a personal record (PR)
+mark_prs <- function(workouts) {
+  is_pr <- rep(FALSE, nrow(workouts))
+  lift_rows <- which(workouts$category %in% c("Upper", "Lower") &
+                       !is.na(workouts$weight_kg) & !is.na(workouts$reps))
+  if (length(lift_rows) == 0) return(is_pr)
+  lift_rows <- lift_rows[order(workouts$date[lift_rows], workouts$set_no[lift_rows])] # >> oldest set first
+  one_rm <- estimate_1rm(workouts$weight_kg[lift_rows], workouts$reps[lift_rows])
+  exercise <- workouts$exercise[lift_rows]
+  # >> for every set: the best 1RM of that exercise BEFORE this set (-Inf = there was nothing before)
+  best_before <- ave(one_rm, exercise, FUN = function(x) c(-Inf, head(cummax(x), -1)))
+  is_pr[lift_rows] <- one_rm > best_before & is.finite(best_before) # >> the very first set isn't a record yet
+  is_pr
+}
+
+# >> my lifts, most-trained first (counted in sets)
+lift_ranking <- function(workouts) {
+  lifts <- strength_sets(workouts)
+  if (nrow(lifts) == 0) return(character(0))
+  counts <- table(lifts$exercise)                          # >> how many sets per exercise
+  names(counts)[order(-as.vector(counts), names(counts))]  # >> most sets first, A-Z when it's a tie
 }
