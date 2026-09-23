@@ -4,7 +4,7 @@
 
 IronLog is my personal project for the Data Dynamics module (year 2, semester 3, Computer Science at NHL Stenden). It's a gym progress app built in R. I log my workouts and my smart-scale readings, and the app turns them into charts that show if I'm actually getting stronger and leaner.
 
-> **Status:** version 0.1 (September 2026). Workout and Body logging work, and the Progress menu shows the first charts. The forecast and the plateau check come later.
+> **Status:** version 0.2 (September 2026). Dashboard, Workout, Body and Progress work, with the dark neon design from my concept presentation. The forecast and the plateau check come later.
 
 ## Why
 
@@ -18,9 +18,11 @@ I train 4–5 times a week, but my sets live in a notes app, so I can't really t
 
 | Menu | What it does | Status |
 |---|---|---|
-| **Workout** | Pick Upper, Lower or Cardio, pick or type the exercise, log weight × reps for every set (cardio: minutes + km). Shows the sets, volume and best estimated 1RM of the day | Done |
-| **Body** | Log a smart-scale reading: weight, BMI, body fat, muscle mass, protein mass, visceral fat, bone mass, body water. Shows the change since the last reading and the full history | Done |
-| **Progress** | Best estimated 1RM per week for any lift, weekly volume (Upper vs Lower), and the trend of any body metric | Done |
+| **Sidebar** | Menu, "this week X / 4 workouts" with a bar per day, my goal streak, and a *Demo data* switch | Done |
+| **Dashboard** | Workouts this week, volume of the last 7 days, top lift, body fat, strength trend of my 3 main lifts, personal records, recent sessions, body snapshot | Done |
+| **Workout** | Pick Upper, Lower or Cardio, pick or type the exercise, log weight × reps (several identical sets at once). The session table marks new PRs; tiles show volume vs last session and the best set | Done |
+| **Body** | Log a smart-scale reading: weight, BMI, body fat, muscle mass, protein mass, visceral fat, bone mass, body water. Sparklines, latest vs 4 weeks ago, full history | Done |
+| **Progress** | Pick 4 weeks / 12 weeks / all: estimated 1RM of up to 3 lifts, weekly volume (Upper vs Lower), weight / body fat / muscle mass, and training days per week vs my goal | Done |
 | **Progress** | Forecast for the next 4 weeks and a plateau check | Planned (December) |
 
 ## The data science part
@@ -47,8 +49,11 @@ IronLog/
 ├── app.R               the app: what you see (ui) + what happens (server)
 ├── R/                  helper functions (Shiny loads these automatically)
 │   ├── storage.R       load and save the CSV files
-│   ├── calculations.R  1RM, best 1RM per week, weekly volume
-│   ├── charts.R        dark chart theme, the charts and the stat tiles
+│   ├── calculations.R  1RM, best 1RM per week, volume, personal records
+│   ├── summaries.R     this week, streak, recent sessions, best lifts, body comparison
+│   ├── format.R        nice dates and numbers ("Wed 23 Sep", "18.2k", "+2.5 kg")
+│   ├── components.R    the building blocks: cards, tiles, tables, pills
+│   ├── charts.R        dark chart theme and all the charts
 │   └── exercises.R     exercise lists for Upper / Lower / Cardio
 ├── www/style.css       extra styling for the neon look
 ├── data/               my real logs (workouts.csv, body.csv), not uploaded to GitHub
@@ -78,13 +83,13 @@ This repo is public, so my real body data stays on my laptop: `.gitignore` block
 
 The first time you save a set, the app creates `data/workouts.csv` (and `data/body.csv` for scale readings).
 
-**Demo mode:** want to see the charts without logging 10 weeks first? Set `demo_mode <- TRUE` at the top of `app.R`. The app then shows the fake data from `data/sample/` and doesn't save anything.
+**Demo data:** want to see the charts without logging 10 weeks first? Flip the *Demo data* switch at the bottom of the sidebar. The app then shows the fake data from `data/sample/` and doesn't save anything. Flip it back to log for real. (`demo_mode <- TRUE` in `app.R` makes the switch start in the on position.)
 
 ## Roadmap
 
 | When | Milestone |
 |---|---|
-| Sept | Topic pitch, start logging workouts, first version of the app (done) |
+| Sept | Topic pitch, start logging workouts, first version of the app + redesign (done) |
 | Oct | Use it every session, first progress presentation |
 | 1 Nov | Mid-term: Progress charts working on real data |
 | Dec | Plateau detection, forecast, evaluation with real data |
