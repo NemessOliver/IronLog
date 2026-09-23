@@ -202,7 +202,14 @@ body {
   border-color: var(--acc) !important; box-shadow: 0 0 0 3px rgba(198, 255, 61, 0.14) !important;
 }
 .selectize-input input, .selectize-input .item { color: var(--text) !important; }
-.selectize-input.has-items .item { background: var(--card2); border: 1px solid var(--line2); border-radius: 999px; padding: 1px 9px; }
+.selectize-control.multi .selectize-input > div.item {
+  background: var(--card2); color: var(--text); border: 1px solid var(--line2);
+  border-radius: 999px; padding: 2px 11px; margin: 0 6px 3px 0;
+}
+/* the lifts picked on the Progress page get the colour of their line in the chart */
+.selectize-control.multi .selectize-input > div.item:nth-child(1) { border-color: #73A40A; }
+.selectize-control.multi .selectize-input > div.item:nth-child(2) { border-color: #3093DB; }
+.selectize-control.multi .selectize-input > div.item:nth-child(3) { border-color: #D4599B; }
 .selectize-dropdown { background: #0F1512 !important; border: 1px solid var(--line2) !important; border-radius: 12px; color: var(--text) !important; }
 .selectize-dropdown .active { background: var(--acc-dim) !important; color: var(--text) !important; }
 .datepicker { background: var(--card); color: var(--text); border-color: var(--line2); }

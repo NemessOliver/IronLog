@@ -57,18 +57,26 @@ last_points <- function(data, date_column, group_column) {
   do.call(rbind, lapply(pieces, function(piece) piece[which.max(piece[[date_column]]), ]))
 }
 
+# >> only the lines with at least 2 points (1 point can't make a line, it only gets its ring)
+with_two_points <- function(data, group_column) {
+  counts <- table(data[[group_column]])
+  data[data[[group_column]] %in% names(counts)[counts >= 2], ]
+}
+
 # >> "How much stronger?" - best estimated 1RM per week, up to 3 lifts, glowing lines
 plot_strength <- function(trends, lifts) {
   if (nrow(trends) == 0) return(empty_plot("No lifts logged in this period"))
   trends$exercise <- factor(trends$exercise, levels = lifts)   # >> keeps the colours in the order I picked
+  lines <- with_two_points(trends, "exercise")
   ends <- last_points(trends, "week", "exercise")
   ggplot(trends, aes(x = week, y = best_1rm, colour = exercise, group = exercise)) +
-    geom_line(linewidth = 3.6, alpha = 0.10, show.legend = FALSE) +  # >> glow, wide layer
-    geom_line(linewidth = 2.0, alpha = 0.20, show.legend = FALSE) +  # >> glow, middle layer
-    geom_line(linewidth = 0.9) +                                     # >> the sharp line on top
+    geom_line(data = lines, linewidth = 3.6, alpha = 0.10, show.legend = FALSE) +  # >> glow, wide layer
+    geom_line(data = lines, linewidth = 2.0, alpha = 0.20, show.legend = FALSE) +  # >> glow, middle layer
+    geom_line(data = lines, linewidth = 0.9) +                                     # >> the sharp line on top
     geom_point(data = ends, shape = 21, fill = card_colour, size = 2.6, stroke = 1.6, show.legend = FALSE) +
     scale_colour_manual(values = setNames(lift_colours[seq_along(lifts)], lifts)) +
     scale_x_date(labels = short_date) +                            # >> "14 Sep" style dates
+    scale_y_continuous(expand = expansion(mult = 0.05, add = 2)) + # >> a bit of room above and below
     labs(x = NULL, y = "kg") +
     theme_ironlog()
 }
@@ -77,9 +85,10 @@ plot_strength <- function(trends, lifts) {
 plot_weekly_volume <- function(volume) {
   if (nrow(volume) == 0) return(empty_plot("No lifting sets in this period"))
   ggplot(volume, aes(x = week, y = volume_kg, fill = category)) +
-    geom_col(colour = card_colour, linewidth = 0.8) +          # >> card-coloured outline = small gap between blocks
+    geom_col(width = 5, colour = card_colour, linewidth = 0.8) + # >> 5 days wide; card-coloured outline = small gap between blocks
     scale_fill_manual(values = c(Upper = upper_colour, Lower = lower_colour)) +
-    scale_x_date(labels = short_date, breaks = scales::breaks_pretty(n = 4)) +
+    scale_x_date(labels = short_date, breaks = scales::breaks_pretty(n = 4),
+                 expand = expansion(add = 4)) +                # >> 4 days of room left and right (so 1 week isn't one giant block)
     scale_y_continuous(labels = function(kg) ifelse(kg >= 1000, paste0(kg / 1000, "k"), kg)) + # >> 10000 -> "10k"
     labs(x = NULL, y = "kg × reps") +
     theme_ironlog()
@@ -97,13 +106,15 @@ plot_body_trends <- function(body) {
   long <- do.call(rbind, Filter(Negate(is.null), parts))       # >> one long table: date, value, metric
   if (is.null(long) || nrow(long) == 0) return(empty_plot("No body readings in this period"))
   long$metric <- factor(long$metric, levels = names(metrics))
+  lines <- with_two_points(long, "metric")
   ends <- last_points(long, "date", "metric")
   ggplot(long, aes(x = date, y = value)) +
-    geom_line(colour = neon, linewidth = 3.6, alpha = 0.10) +
-    geom_line(colour = neon, linewidth = 2.0, alpha = 0.20) +
-    geom_line(colour = neon, linewidth = 0.9) +
+    geom_line(data = lines, colour = neon, linewidth = 3.6, alpha = 0.10) +
+    geom_line(data = lines, colour = neon, linewidth = 2.0, alpha = 0.20) +
+    geom_line(data = lines, colour = neon, linewidth = 0.9) +
     geom_point(data = ends, shape = 21, colour = neon, fill = card_colour, size = 2.6, stroke = 1.6) +
     facet_wrap(~metric, nrow = 1, scales = "free_y") +         # >> 3 mini charts, each with its own scale
+    scale_y_continuous(expand = expansion(mult = 0.08, add = 0.3)) +
     scale_x_date(labels = short_date, breaks = scales::breaks_pretty(n = 3)) +
     labs(x = NULL, y = NULL) +
     theme_ironlog()

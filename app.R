@@ -18,7 +18,7 @@ library(ggplot2)  # >> the charts
 
 # ---- Settings ----------------------------------------------------------------
 
-user_name   <- "Nemess Oliver"   # >> shown in the sidebar
+user_name   <- "Nemess Oliver"   # >> shown in the sidebar; the first word is used in the greeting
 weekly_goal <- 4                 # >> my PDP goal: 4 gym sessions a week
 demo_mode   <- FALSE             # >> TRUE = start with the fake demo data switched on
 
@@ -78,7 +78,7 @@ ui <- fluidPage(
 
         # ---------- Page 1: Dashboard ----------
         tabPanelBody("dashboard",
-          page_top(textOutput("greeting", inline = TRUE), textOutput("dash_sub", inline = TRUE),
+          page_top(uiOutput("greeting", inline = TRUE), uiOutput("dash_sub", inline = TRUE),
                    actionButton("go_body", "Log body", icon = icon("weight-scale"), class = "btn-ghost"),
                    actionButton("go_workout", "Log workout", icon = icon("plus"), class = "btn-primary")),
           uiOutput("dash_kpis"),
@@ -95,7 +95,7 @@ ui <- fluidPage(
 
         # ---------- Page 2: Workout ----------
         tabPanelBody("workout",
-          page_top("Workout", textOutput("workout_sub", inline = TRUE)),
+          page_top("Workout", uiOutput("workout_sub", inline = TRUE)),
           div(class = "il-toolbar",
             div(class = "il-seg",                                         # >> Upper / Lower / Cardio switch
               radioButtons("category", NULL, inline = TRUE,
@@ -121,8 +121,8 @@ ui <- fluidPage(
                   column(6, numericInput("duration", "Minutes", value = 30, min = 1)),
                   column(6, numericInput("distance", "Distance (km)", value = NA, min = 0, step = 0.1)))),
               actionButton("add_set", "Add set", icon = icon("plus"), class = "btn-primary w-100"),
-              hint = textOutput("next_set_hint", inline = TRUE))),
-            column(7, panel(textOutput("session_title", inline = TRUE), "list",
+              hint = uiOutput("next_set_hint", inline = TRUE))),
+            column(7, panel(uiOutput("session_title", inline = TRUE), "list",
                             uiOutput("session_table"),
                             hint = textOutput("session_hint", inline = TRUE)))
           ),
@@ -157,7 +157,7 @@ ui <- fluidPage(
 
         # ---------- Page 4: Progress ----------
         tabPanelBody("progress",
-          page_top("Progress", textOutput("progress_sub", inline = TRUE),
+          page_top("Progress", uiOutput("progress_sub", inline = TRUE),
                    div(class = "il-seg small",                              # >> 4 weeks / 12 weeks / everything
                        radioButtons("range", NULL, inline = TRUE,
                                     choices = c("4W", "12W", "All"), selected = "12W"))),
@@ -227,11 +227,13 @@ server <- function(input, output, session) {
 
   # ======================= Dashboard =======================
 
-  output$greeting <- renderText({
+  # >> texts with special characters (like · and –) use renderUI instead of renderText:
+  # >> renderText can turn them into codes like <U+00B7> when R runs with a basic language setting
+  output$greeting <- renderUI({
     paste0(greeting(as.integer(format(Sys.time(), "%H"))), ", ", first_name(user_name))
   })
 
-  output$dash_sub <- renderText({
+  output$dash_sub <- renderUI({
     week <- weeks_of_training(workouts(), today())
     paste0(nice_date(today()), if (week > 0) paste0(" · week ", week, " of training") else "")
   })
@@ -314,7 +316,7 @@ server <- function(input, output, session) {
 
   # ======================= Workout =======================
 
-  output$workout_sub <- renderText({
+  output$workout_sub <- renderUI({
     req(input$workout_date)
     paste("Log your session ·", nice_date(input$workout_date))
   })
@@ -326,7 +328,11 @@ server <- function(input, output, session) {
                          selected = "")
   })
 
-  output$next_set_hint <- renderText({
+  # >> the date follows "today": with demo data that's the last day in the fake log,
+  # >> so the session table shows a real session instead of an empty day
+  observeEvent(today(), updateDateInput(session, "workout_date", value = today()))
+
+  output$next_set_hint <- renderUI({
     req(input$workout_date)
     if (!isTruthy(input$exercise)) return("")
     exercise <- trimws(input$exercise)
@@ -385,7 +391,7 @@ server <- function(input, output, session) {
     all_sets[which(all_sets$date == input$workout_date), ]
   })
 
-  output$session_title <- renderText({
+  output$session_title <- renderUI({
     req(input$workout_date)
     paste("Session ·", short_day(input$workout_date))
   })
@@ -418,15 +424,18 @@ server <- function(input, output, session) {
     sets <- session_sets()
     lifts <- strength_sets(sets)
     volume <- sum(lifts$weight_kg * lifts$reps)
-    before <- previous_session_volume(workouts(), input$workout_date, input$category)
+    # >> compare with my last session of the same kind (Upper with Upper, Lower with Lower)
+    kind <- if (nrow(lifts) > 0) names(which.max(table(lifts$category))) else input$category
+    before <- previous_session_volume(workouts(), input$workout_date, kind)
     best <- if (nrow(lifts) > 0) which.max(estimate_1rm(lifts$weight_kg, lifts$reps)) else NULL
 
     div(class = "il-kpis three",
       kpi_tile("Session volume", "layer-group", format_volume(volume), "kg",
-               if (!is.na(before) && volume > 0) change_line(volume - before, paste("vs last", input$category, "session"), "up", "kg")
+               if (!is.na(before) && volume > 0) change_line(volume - before, paste("vs last", kind, "session"), "up", "kg")
                else note_line("kg × reps, added up")),
       kpi_tile("Sets done", "list-check", nrow(sets), NULL,
-               note_line(paste(length(unique(sets$exercise)), "exercises"))),
+               note_line(paste(length(unique(sets$exercise)),
+                               if (length(unique(sets$exercise)) == 1) "exercise" else "exercises"))),
       if (is.null(best)) {
         kpi_tile("Best set", "award", "-", NULL, note_line("log a set to see it"))
       } else {
@@ -512,7 +521,7 @@ server <- function(input, output, session) {
                          selected = if (length(keep) > 0) keep else head(lifts, 3))
   })
 
-  output$progress_sub <- renderText({
+  output$progress_sub <- renderUI({
     sets <- period_workouts()
     if (nrow(sets) == 0) return("No workouts in this period yet")
     first <- min(sets$date)

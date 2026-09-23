@@ -48,7 +48,8 @@ change_line <- function(change, text = "", good_when = "up", unit = "") {
   direction <- if (change > 0) "up" else if (change < 0) "down" else "flat"
   mood <- if (direction == "flat" || good_when == "none") "" else if (direction == good_when) "good" else "bad"
   arrow <- c(up = "arrow-up", down = "arrow-down", flat = "minus")[[direction]]
-  div(class = paste("d", mood), icon(arrow), tags$b(trimws(paste(abs(change), unit))), text)
+  amount <- format(abs(change), big.mark = ",", trim = TRUE)    # >> 5500 -> "5,500"
+  div(class = paste("d", mood), icon(arrow), tags$b(trimws(paste(amount, unit))), text)
 }
 
 # >> a note without an arrow, e.g. "Goal reached"
