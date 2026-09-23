@@ -1,101 +1,232 @@
 /* ============================================================
-   IronLog - extra styling on top of the dark bslib theme
-   Simple Sum-Up: bs_theme() in app.R does most of the dark look.
-   This file only adds the details: the neon menu bar, rounded
-   cards, the stat tiles and dark tables/notifications.
+   IronLog - the look of the app (dark + neon green)
+   Simple Sum-Up: app.R builds the page out of blocks with class
+   names like "il-card" or "il-kpi". This file says what each block
+   looks like: colours, rounded corners, spacing, fonts.
+   "il-" is just a prefix so my names never clash with Bootstrap's.
    ============================================================ */
 
-/* the menu bar at the top */
-.navbar {
-  background-color: #0D120F !important;
-  border-bottom: 1px solid #222D26;
-}
-.navbar-brand {
-  color: #C6FF3D !important;               /* neon app name */
-  font-weight: 800;
-  letter-spacing: -0.5px;
-}
-.navbar .nav-link {
-  color: #8B978F !important;               /* grey menu items... */
-  font-weight: 600;
-}
-.navbar .nav-link.active,
-.navbar .nav-link:hover {
-  color: #C6FF3D !important;               /* ...neon when active or hovered */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap");
+
+/* the colours, in one place */
+:root {
+  --bg: #0A0D0B;
+  --side: #0D120F;
+  --card: #131A15;
+  --card2: #182019;
+  --line: #222D26;
+  --line2: #2C3A30;
+  --text: #EEF3EC;
+  --muted: #8B978F;
+  --muted2: #5F6B63;
+  --acc: #C6FF3D;
+  --acc-dim: rgba(198, 255, 61, 0.13);
+  --red: #FF6B6B;
+  --blue: #38B6FF;
 }
 
-/* cards (wellPanel) */
-.well {
-  background-color: #131A15;
-  border: 1px solid #222D26;
-  border-radius: 16px;
-  box-shadow: none;
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
+.container-fluid { padding: 0 !important; }
+.il-app { display: flex; min-height: 100vh; }
 
-h4 {
-  font-weight: 700;
-  margin-bottom: 14px;
-}
-
-/* the neon buttons */
-.btn-primary {
-  color: #0A0D0B !important;
-  font-weight: 700;
-  box-shadow: 0 0 22px rgba(198, 255, 61, 0.25);  /* soft glow */
-}
-
-/* stat tiles */
-.tile-row {
+/* ---------- sidebar ---------- */
+.il-sidebar {
+  width: 232px;
+  flex-shrink: 0;
+  background: var(--side);
+  border-right: 1px solid var(--line);
+  padding: 26px 16px 22px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 14px;
-  margin-bottom: 18px;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
 }
-.stat-tile {
-  flex: 1;
-  min-width: 160px;
-  background-color: #131A15;
-  border: 1px solid #222D26;
-  border-radius: 14px;
-  padding: 14px 16px;
+.il-logo {
+  display: flex; align-items: center; gap: 12px;
+  font-family: "Space Grotesk", Inter, sans-serif;
+  font-weight: 700; font-size: 23px; letter-spacing: -0.6px;
+  padding: 2px 8px 28px;
 }
-.stat-label {
-  color: #8B978F;
-  font-size: 13px;
+.il-logo-mark {
+  width: 38px; height: 38px; border-radius: 12px;
+  background: var(--acc); color: var(--bg);
+  display: grid; place-items: center; font-size: 17px;
+  box-shadow: 0 0 26px rgba(198, 255, 61, 0.35);
 }
-.stat-value {
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  margin-top: 2px;
+
+/* the menu is a set of radio buttons dressed up as menu items */
+.il-nav .form-group { margin: 0; width: 100% !important; }
+.il-nav .shiny-options-group { display: flex; flex-direction: column; gap: 4px; }
+.il-nav .radio { margin: 0; padding: 0; }
+.il-nav label:has(> input[type="radio"]) {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  padding: 12px 14px !important; margin: 0 !important;
+  border-radius: 12px; cursor: pointer;
+  color: var(--muted); font-weight: 500; font-size: 14.5px;
 }
-.stat-note {
-  color: #8B978F;
-  font-size: 13px;
-  margin-top: 2px;
+.il-nav label:has(> input[type="radio"]) span { display: flex; align-items: center; gap: 12px; }
+.il-nav label:hover { color: var(--text); }
+.il-nav input[type="radio"],
+.il-seg input[type="radio"] { position: absolute; opacity: 0; pointer-events: none; }
+.il-nav label:has(> input[type="radio"]:checked) {
+  background: var(--acc-dim); color: var(--acc); font-weight: 600;
 }
+
+.il-sidebar-bottom { margin-top: auto; }
+.il-week {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 14px; padding: 14px; margin-bottom: 12px;
+}
+.il-week .t { font-size: 12px; color: var(--muted); font-weight: 500; }
+.il-week .v { font-family: "Space Grotesk", Inter, sans-serif; font-size: 22px; font-weight: 700; margin-top: 4px; }
+.il-week .v span { color: var(--acc); }
+.il-days { display: flex; gap: 5px; margin-top: 10px; }
+.il-days span { flex: 1; height: 6px; border-radius: 3px; background: var(--line2); display: block; }
+.il-days span.on { background: var(--acc); box-shadow: 0 0 8px rgba(198, 255, 61, 0.5); }
+.il-user { display: flex; align-items: center; gap: 10px; padding: 8px; }
+.il-avatar {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: linear-gradient(135deg, #C6FF3D, #2E9E6A);
+  color: var(--bg); font-weight: 800; font-size: 13px;
+  display: grid; place-items: center;
+}
+.il-user .n { font-size: 13.5px; font-weight: 600; }
+.il-user .s { font-size: 11.5px; color: var(--muted); }
+.il-demo { padding: 6px 8px 0; font-size: 12.5px; color: var(--muted); }
+.il-demo .form-group, .il-demo .shiny-input-container { margin: 0; }
+.il-demo .form-check-input:checked { background-color: var(--acc); border-color: var(--acc); }
+
+/* ---------- main area ---------- */
+.il-main { flex: 1; min-width: 0; padding: 26px 34px 34px; }
+.il-top {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap; margin-bottom: 20px;
+}
+.il-top h1 { font-size: 27px; font-weight: 700; letter-spacing: -0.7px; margin: 0; }
+.il-sub { color: var(--muted); font-size: 13.5px; margin-top: 4px; }
+.il-actions { display: flex; gap: 10px; align-items: center; }
+.il-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+
+/* buttons */
+.btn { border-radius: 12px; font-weight: 700; padding: 11px 18px; }
+.btn.btn-primary {
+  background: var(--acc) !important; border-color: var(--acc) !important; color: var(--bg) !important;
+  box-shadow: 0 0 28px rgba(198, 255, 61, 0.22);
+}
+.btn.btn-ghost {
+  background: transparent !important; border: 1px solid var(--line2) !important;
+  color: var(--text) !important; font-weight: 600;
+}
+.btn.btn-ghost:hover { border-color: var(--muted2) !important; }
+
+/* cards */
+.il-card {
+  background: var(--card); border: 1px solid var(--line);
+  border-radius: 18px; padding: 20px 22px; margin-bottom: 20px;
+}
+.il-card-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.il-card-h h3 { font-size: 14.5px; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 9px; }
+.il-card-h h3 i { color: var(--acc); }
+.il-hint { font-size: 12.5px; color: var(--muted); }
+.il-empty { color: var(--muted); font-size: 13.5px; padding: 6px 0; }
+.il-card .shiny-input-container { width: 100% !important; }
+.il-card .shiny-plot-output { border-radius: 10px; overflow: hidden; }
+
+/* big number tiles */
+.il-kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; margin-bottom: 20px; }
+.il-kpis.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.il-kpi { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 18px 22px; min-width: 0; }
+.il-kpi .t { font-size: 12.5px; color: var(--muted); font-weight: 500; display: flex; align-items: center; gap: 7px; }
+.il-kpi .t i { color: var(--acc); }
+.il-kpi .v {
+  font-family: "Space Grotesk", Inter, sans-serif; font-size: 32px; font-weight: 700;
+  letter-spacing: -1px; margin-top: 8px; line-height: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.il-kpi .v small, .il-tile .v small {
+  font-family: Inter, sans-serif; font-size: 15px; color: var(--muted);
+  font-weight: 500; letter-spacing: 0; margin-left: 3px;
+}
+.d { font-size: 12.5px; margin-top: 8px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+.d b { font-weight: 700; }
+.d.good b, .d.good i { color: var(--acc); }
+.d.bad b, .d.bad i { color: var(--red); }
+@media (max-width: 1100px) { .il-kpis, .il-kpis.three { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* small tiles */
+.il-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.il-tile { background: var(--card2); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.il-tile .t { font-size: 12px; color: var(--muted); }
+.il-tile .v { font-family: "Space Grotesk", Inter, sans-serif; font-size: 24px; font-weight: 700; letter-spacing: -0.6px; margin-top: 5px; line-height: 1.1; }
+.il-tile .v small { font-size: 13px; }
+.il-tile .d { font-size: 12px; margin-top: 5px; }
+
+/* sparklines on the Body page */
+.il-spark { background: var(--card2); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px 8px; margin-top: 6px; }
+.il-spark-h { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); margin-bottom: 4px; }
+.il-spark-h .val { color: var(--acc); font-weight: 600; }
+
+/* segmented control (Upper / Lower / Cardio, 4W / 12W / All) */
+.il-seg .form-group { margin: 0; }
+.il-seg .shiny-options-group {
+  display: inline-flex; gap: 3px; padding: 5px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+}
+.il-seg label:has(> input[type="radio"]) {
+  display: inline-flex; align-items: center; gap: 8px;
+  margin: 0 !important; padding: 9px 20px !important;
+  border-radius: 10px; cursor: pointer;
+  color: var(--muted); font-weight: 600; font-size: 14px;
+}
+.il-seg label:has(> input[type="radio"]) span { display: inline-flex; align-items: center; gap: 8px; }
+.il-seg label:has(> input[type="radio"]:checked) { background: var(--acc); color: var(--bg); }
+.il-seg.small label:has(> input[type="radio"]) { padding: 7px 14px !important; font-size: 13px; }
+
+/* form fields */
+.control-label, .form-label {
+  font-size: 11.5px; color: var(--muted); text-transform: uppercase;
+  letter-spacing: 0.7px; font-weight: 600; margin-bottom: 7px;
+}
+.form-control, .selectize-input {
+  background: #0C100E !important; color: var(--text) !important;
+  border: 1px solid var(--line) !important; border-radius: 12px !important;
+  min-height: 44px; box-shadow: none !important;
+}
+.form-control:focus, .selectize-input.focus {
+  border-color: var(--acc) !important; box-shadow: 0 0 0 3px rgba(198, 255, 61, 0.14) !important;
+}
+.selectize-input input, .selectize-input .item { color: var(--text) !important; }
+.selectize-input.has-items .item { background: var(--card2); border: 1px solid var(--line2); border-radius: 999px; padding: 1px 9px; }
+.selectize-dropdown { background: #0F1512 !important; border: 1px solid var(--line2) !important; border-radius: 12px; color: var(--text) !important; }
+.selectize-dropdown .active { background: var(--acc-dim) !important; color: var(--text) !important; }
+.datepicker { background: var(--card); color: var(--text); border-color: var(--line2); }
+.datepicker table tr td.active, .datepicker table tr td.active:hover { background: var(--acc) !important; color: var(--bg) !important; }
 
 /* tables */
-.table {
-  color: #EEF3EC;
+.il-table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.il-table th {
+  text-align: left; color: var(--muted); font-weight: 600; font-size: 11.5px;
+  text-transform: uppercase; letter-spacing: 0.6px;
+  padding: 0 10px 10px; border-bottom: 1px solid var(--line);
 }
-.table th {
-  color: #8B978F;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.table td,
-.table th {
-  background-color: transparent !important;
-  border-color: #222D26 !important;
-}
+.il-table td { padding: 11px 10px; border-bottom: 1px solid var(--line); }
+.il-table tr:last-child td { border-bottom: none; }
+.il-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.il-table .strong { font-weight: 600; }
+.il-table .mut { color: var(--muted); }
+.il-pill { border-radius: 999px; padding: 4px 9px; font-size: 10.5px; font-weight: 700; letter-spacing: 0.3px; display: inline-block; white-space: nowrap; }
+.il-pill.pr { background: var(--acc-dim); color: var(--acc); }
+.il-pill.mut { background: var(--card2); color: var(--muted); }
+.il-pill.blue { background: rgba(56, 182, 255, 0.14); color: var(--blue); }
 
 /* pop-up messages ("Saved: Bench press, set 3") */
 .shiny-notification {
-  background-color: #182019;
-  color: #EEF3EC;
-  border: 1px solid #2C3A30;
-  border-radius: 12px;
+  background-color: var(--card2); color: var(--text);
+  border: 1px solid var(--line2); border-radius: 12px;
 }
