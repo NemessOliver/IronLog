@@ -1,0 +1,101 @@
+/* ============================================================
+   IronLog - extra styling on top of the dark bslib theme
+   Simple Sum-Up: bs_theme() in app.R does most of the dark look.
+   This file only adds the details: the neon menu bar, rounded
+   cards, the stat tiles and dark tables/notifications.
+   ============================================================ */
+
+/* the menu bar at the top */
+.navbar {
+  background-color: #0D120F !important;
+  border-bottom: 1px solid #222D26;
+}
+.navbar-brand {
+  color: #C6FF3D !important;               /* neon app name */
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+.navbar .nav-link {
+  color: #8B978F !important;               /* grey menu items... */
+  font-weight: 600;
+}
+.navbar .nav-link.active,
+.navbar .nav-link:hover {
+  color: #C6FF3D !important;               /* ...neon when active or hovered */
+}
+
+/* cards (wellPanel) */
+.well {
+  background-color: #131A15;
+  border: 1px solid #222D26;
+  border-radius: 16px;
+  box-shadow: none;
+}
+
+h4 {
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+/* the neon buttons */
+.btn-primary {
+  color: #0A0D0B !important;
+  font-weight: 700;
+  box-shadow: 0 0 22px rgba(198, 255, 61, 0.25);  /* soft glow */
+}
+
+/* stat tiles */
+.tile-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.stat-tile {
+  flex: 1;
+  min-width: 160px;
+  background-color: #131A15;
+  border: 1px solid #222D26;
+  border-radius: 14px;
+  padding: 14px 16px;
+}
+.stat-label {
+  color: #8B978F;
+  font-size: 13px;
+}
+.stat-value {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-top: 2px;
+}
+.stat-note {
+  color: #8B978F;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+/* tables */
+.table {
+  color: #EEF3EC;
+}
+.table th {
+  color: #8B978F;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.table td,
+.table th {
+  background-color: transparent !important;
+  border-color: #222D26 !important;
+}
+
+/* pop-up messages ("Saved: Bench press, set 3") */
+.shiny-notification {
+  background-color: #182019;
+  color: #EEF3EC;
+  border: 1px solid #2C3A30;
+  border-radius: 12px;
+}
