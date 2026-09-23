@@ -2,7 +2,8 @@
 # storage.R - saving and loading my logs as CSV files
 # ============================================================
 # Simple Sum-Up:
-# All my data lives in two CSV files (think: two Excel sheets).
+# All my data lives in two CSV files (think: two Excel sheets), in my own
+# folder data/users/<my username>/ (see accounts.R).
 #   workouts.csv -> one row for every set I do
 #   body.csv     -> one row for every smart-scale reading
 # These functions open a file, add a new row at the bottom and save it back.
@@ -36,14 +37,18 @@ body_types <- c(
   water_pct = "numeric"
 )
 
+# >> an empty table with the right columns (before anything is logged, or before anyone logs in)
+empty_table <- function(types) {
+  header_only <- paste(names(types), collapse = ",")       # >> "date,category,exercise,..."
+  table <- read.csv(text = header_only, colClasses = types) # >> a table with just the column names
+  table$date <- as.Date(table$date)
+  table
+}
+
 # >> opens one CSV file and gives it back as a table (data frame)
 load_table <- function(path, types) {
-  if (file.exists(path)) {
-    table <- read.csv(path, colClasses = types)             # >> read the file with the right column types
-  } else {
-    header_only <- paste(names(types), collapse = ",")     # >> "date,category,exercise,..."
-    table <- read.csv(text = header_only, colClasses = types) # >> an empty table with just the column names
-  }
+  if (!file.exists(path)) return(empty_table(types))        # >> no file yet -> empty table
+  table <- read.csv(path, colClasses = types)               # >> read the file with the right column types
   table$date <- as.Date(table$date)                         # >> "2026-09-23" (text) -> real date
   table
 }

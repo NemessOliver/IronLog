@@ -11,10 +11,12 @@
 rsconnect/
 
 # --- My real data stays private (this repo is public) ---
-# Every CSV/Excel file directly in data/ is ignored.
+# Every CSV/Excel file directly in data/ is ignored (that includes accounts.csv
+# with the password hashes), and so is every user's own folder in data/users/.
 # Fake example data goes in data/sample/ and IS uploaded.
 data/*.csv
 data/*.xlsx
+data/users/
 
 # --- macOS ---
 .DS_Store
