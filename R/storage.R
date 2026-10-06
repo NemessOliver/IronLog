@@ -77,3 +77,27 @@ save_workout_set <- function(new_set, data_dir) {
 save_body_reading <- function(reading, data_dir) {
   add_row(reading, file.path(data_dir, "body.csv"), body_types)
 }
+
+# >> renames an exercise in my log - for typos, or when two different things got the same name
+# >> on_date = only that one day (e.g. the day I used dumbbells), NULL = every day
+# >> WHY not just edit the CSV by hand? A function is repeatable, it makes a backup
+# >> first, and it tells me exactly how many sets it changed. Hand edits leave no trace.
+# >> Use it in the R console, from the IronLog folder, e.g.:
+# >>   source("R/storage.R")
+# >>   rename_exercise("data/users/nemessoliver", "shoulders", "Shoulder press (machine)")
+rename_exercise <- function(data_dir, from, to, on_date = NULL) {
+  path <- file.path(data_dir, "workouts.csv")
+  workouts <- load_workouts(data_dir)
+  rows <- workouts$exercise == from                         # >> TRUE for every set with the old name
+  if (!is.null(on_date)) rows <- rows & workouts$date == as.Date(on_date) # >> ...and only on that day
+  if (sum(rows) == 0) {
+    message("Nothing renamed: no sets called '", from, "'.")
+    return(invisible(0))                                    # >> invisible = give back 0 without printing it
+  }
+  backup <- file.path(data_dir, paste0("workouts_backup_", format(Sys.Date()), ".csv"))
+  file.copy(path, backup, overwrite = FALSE)                # >> keep the original (never overwrite an older backup)
+  workouts$exercise[rows] <- to
+  write.csv(workouts, path, row.names = FALSE)
+  message("Renamed ", sum(rows), " sets: '", from, "' -> '", to, "'. Backup: ", backup)
+  invisible(sum(rows))
+}
