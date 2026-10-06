@@ -18,6 +18,10 @@ data/*.csv
 data/*.xlsx
 data/users/
 
+# --- Charts and numbers made from my real data (analysis/midterm_eda.R) ---
+# They show my real workouts and body numbers, so they stay private too.
+output/
+
 # --- macOS ---
 .DS_Store
 
