@@ -470,7 +470,12 @@ server <- function(input, output, session) {
       return(showNotification("Fill in how many minutes.", type = "error"))
     }
 
-    exercise <- trimws(input$exercise)
+    # >> "bench press" -> "Bench press" when I logged (or the starter list has) that spelling before,
+    # >> so one exercise never ends up under two names (see R/data_quality.R)
+    known_names <- c(unique(workouts()$exercise), starter_exercises[[input$category]])
+    exercise <- match_known_name(input$exercise, known_names)
+    # >> compare the weight with my last session of this lift BEFORE saving (NULL = nothing strange)
+    heads_up <- if (is_cardio) NULL else jump_warning(workouts(), exercise, input$weight, input$workout_date)
     how_many <- if (is_cardio || is.na(input$sets)) 1 else max(1, min(10, round(input$sets))) # >> 1-10 identical sets
     first_no <- next_set_number(workouts(), input$workout_date, exercise)
     new_sets <- data.frame(                                               # >> one row per set for workouts.csv
@@ -491,6 +496,8 @@ server <- function(input, output, session) {
     showNotification(paste0("Saved: ", exercise, ", set ",
                             if (how_many > 1) paste0(first_no, "-", last_no) else first_no),
                      type = "message")
+    # >> the set IS saved (it might be right!), but I get a heads-up to double-check it
+    if (!is.null(heads_up)) showNotification(heads_up, type = "warning", duration = 12)
   })
 
   # >> all my sets with a TRUE/FALSE "is it a PR?" column (a PR is judged against my whole history)
