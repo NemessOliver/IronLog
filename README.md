@@ -135,7 +135,7 @@ Rscript analysis/midterm_eda.R nemessoliver   # my own log
 Rscript analysis/midterm_eda.R sample         # the fake demo data
 ```
 
-It prints the numbers and the data checks, and saves the charts in `output/<name>/figures/`, the numbers in `output/<name>/midterm_numbers.txt` and the R + package versions in `output/<name>/session_info.txt`.
+It prints the numbers and the data checks, and saves the charts in `output/<name>/figures/`, the numbers in `output/<name>/midterm_numbers.txt` and the R + package versions (with ready-to-paste APA references for my report) in `output/<name>/session_info.txt`.
 
 **Demo data:** want to see the charts without logging 10 weeks first? Flip the *Demo data* switch at the bottom of the sidebar. The app then shows the fake data from `data/sample/` and doesn't save anything. Flip it back to log for real. (`demo_mode <- TRUE` in `app.R` makes the switch start in the on position.)
 

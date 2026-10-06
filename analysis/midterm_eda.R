@@ -10,7 +10,7 @@
 #   2. prints the basic numbers (sessions, sets, exercises, dates)
 #   3. runs the data-quality checks from R/data_quality.R
 #   4. saves 5 charts as PNG files (for my report and slides)
-#   5. saves the numbers + the R and package versions as text files
+#   5. saves the numbers, the R and package versions and ready-to-paste APA references as text files
 #
 # Run it from the IronLog folder, in the terminal:
 #   Rscript analysis/midterm_eda.R nemessoliver     <- my own data (data/users/nemessoliver)
@@ -64,7 +64,7 @@ numbers <- c(                                          # >> a named vector: "lab
   "Sets per session (average)"   = round(nrow(workouts) / length(sessions), 1),
   "Training days per week (avg)" = round(mean(per_week$days), 1),
   "Weeks with goal reached"      = paste0(sum(per_week$days >= goal), " of ", weeks, " (goal = ", goal, ")"),
-  "Total volume (kg x reps)"     = format(sum(lifts$weight_kg * lifts$reps), big.mark = ","),
+  "Total volume (kg x reps)"     = format(round(sum(lifts$weight_kg * lifts$reps)), big.mark = ","),
   "Body-scale readings"          = nrow(body)
 )
 
@@ -221,12 +221,28 @@ cat("\nEmpty cells in body.csv\n"); print(missing_body, row.names = FALSE)
 sink()                                                 # >> back to the screen
 cat("saved", summary_file, "\n")
 
-# >> which R and package versions made these results (needed for the references in the report)
+# >> one APA reference for an R package, with the version that is installed on THIS laptop
+# >> packageDate() = the day that version was published, so the year always matches the version
+apa_package <- function(package, authors, title) {
+  if (!requireNamespace(package, quietly = TRUE)) return(paste(package, "is not installed"))
+  year <- format(packageDate(package), "%Y")
+  paste0(authors, " (", year, "). ", title, " (R package version ", packageVersion(package),
+         ") [Computer software]. https://CRAN.R-project.org/package=", package)
+}
+
+# >> which R and package versions made these results + ready-to-paste references for the report
 versions_file <- file.path(out_dir, "session_info.txt")
-writeLines(c(capture.output(sessionInfo()), "",
-             "Package versions:",
-             paste(" ", c("shiny", "ggplot2", "bslib", "sodium"),
-                   sapply(c("shiny", "ggplot2", "bslib", "sodium"),
-                          function(p) tryCatch(as.character(packageVersion(p)), error = function(e) "not installed")))),
+r_version <- paste(R.version$major, R.version$minor, sep = ".")   # >> e.g. "4.6.1"
+references <- c(
+  paste0("R Core Team. (", R.version$year, "). R: A language and environment for statistical computing (Version ",
+         r_version, ") [Computer software]. R Foundation for Statistical Computing. https://www.R-project.org/"),
+  apa_package("shiny", "Chang, W., Cheng, J., Allaire, J. J., Sievert, C., Schloerke, B., Xie, Y., Allen, J., McPherson, J., Dipert, A., & Borges, B.",
+              "shiny: Web application framework for R"),
+  apa_package("bslib", "Sievert, C., Cheng, J., & Aden-Buie, G.", "bslib: Custom 'Bootstrap' 'Sass' themes for 'shiny' and 'rmarkdown'"),
+  apa_package("sodium", "Ooms, J.", "sodium: A modern and easy-to-use crypto library"),
+  "Wickham, H. (2016). ggplot2: Elegant graphics for data analysis. Springer-Verlag New York. https://ggplot2.tidyverse.org"
+)
+writeLines(c("APA references for the software (copy these into the report):", "", references, "",
+             "Full session info:", capture.output(sessionInfo())),
            versions_file)
 cat("saved", versions_file, "\n")
